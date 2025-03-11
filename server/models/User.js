@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     _id: {
-      type: String, // Explicitly use Clerk's string-based ID
+      type: String,
       required: true,
     },
     name: {
@@ -17,14 +17,13 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-     resume: {
-        type: String,
-      },
+    // resume: {
+    //   type: String,
+    // },
     image: {
       type: String,
       required: true,
     },
-   
   },
   { timestamps: true }
 );

@@ -1,10 +1,10 @@
-import { Webhook } from "svix"; // Make sure you have svix for webhook verification
-import User from "../models/User.js"; // Import your User model
+import { Webhook } from "svix";
+import User from "../models/User.js";
 
-  // Clerk Webhook Handler
-  export const clerkWebhooks = async (req, res) => {
+export const clerkWebhooks = async (req, res) => {
     try {
-      
+      console.log("Received webhook:", JSON.stringify(req.body, null, 2));
+  
       // Verify the webhook signature
       const webhook = new Webhook(process.env.CLERK_WEBHOOK_SECRET);
       await webhook.verify(JSON.stringify(req.body), {
@@ -12,23 +12,24 @@ import User from "../models/User.js"; // Import your User model
         "svix-timestamp": req.headers["svix-timestamp"],
         "svix-signature": req.headers["svix-signature"],
       });
-  
+      console.log("Webhook verified successfully");
   
       const { data, type } = req.body;
-    
+      console.log(`Processing event type: ${type}`);
   
       switch (type) {
         case "user.created": {
+          console.log("Creating user with data:", data);
           const userData = {
             _id: data.id,
             email: data.email_addresses[0].email_address,
             name: `${data.first_name} ${data.last_name}`,
             image: data.image_url,
-            resume: ""
+            resume:'',
           };
-          await User.create(userData);
-          res.json({});
-          break;
+          const newUser = await User.create(userData);
+          console.log("User created successfully:", newUser);
+          return res.status(200).json({ success: true });
         }
   
         case "user.updated": {
@@ -36,17 +37,20 @@ import User from "../models/User.js"; // Import your User model
           const userData = {
             email: data.email_addresses[0].email_address,
             name: `${data.first_name} ${data.last_name}`,
-            imageUrl: data.image_url,
+            image: data.image_url,
           };
-          await User.findByIdAndUpdate(data.id, userData);
-        res.json({});
-          break;
+          const updatedUser = await User.findByIdAndUpdate(data.id, userData, {
+            new: true,
+          });
+          console.log("User updated successfully:", updatedUser);
+          return res.status(200).json({ success: true });
         }
   
         case "user.deleted": {
+          console.log("Deleting user with ID:", data.id);
           const deletedUser = await User.findByIdAndDelete(data.id);
-           res.json({});
-           break;
+          console.log("User deleted successfully:", deletedUser);
+          return res.status(200).json({ success: true });
         }
   
         default:
