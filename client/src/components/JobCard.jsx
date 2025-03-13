@@ -8,7 +8,7 @@ const JobCard = ({ job }) => {
     <div className="border p-4 rounded-lg shadow-sm">
       {/* Company Logo */}
       <div className="mb-3">
-        <img src={assets.company_icon} alt={`${job.company} logo`} className="h-12 w-12" />
+        <img src={job.companyId.image} alt={`${job.company} logo`} className="h-12 w-12" />
       </div>
 
       {/* Job Title */}

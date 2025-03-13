@@ -1,10 +1,30 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets";
+import { useContext } from "react";
+import { AppContext } from "../context/AppContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const { companyData, setCompanyData, setCompanyToken } =
+    useContext(AppContext);
+
+  //function for logout
+
+  const logout = async () => {
+    setCompanyToken(null);
+    localStorage.removeItem("companyToken");
+    setCompanyData(null);
+    navigate("/");
+  };
+
+  useEffect(() => {
+  if (companyData) {
+    navigate('/dashboard/manage-jobs')
+  }
+  }, [companyData])
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -20,24 +40,31 @@ const Dashboard = () => {
             src={assets.logo}
             alt="Company Logo"
           />
-          <div className="flex items-center gap-3">
-            <p className="max-sm:hidden">Welcome, Josia G. Njidile</p>
-            <div className="relative group">
-              <img
-                onClick={toggleMenu}
-                className="w-8 h-8 border rounded-full cursor-pointer"
-                src={assets.company_icon}
-                alt="User Avatar"
-              />
-              {menuOpen && (
-                <div className="absolute top-12 right-0 ring-0 z-10 text-black rounded pt-2">
-                  <ul className="list-none m-0 p-2 bg-white rounded-md border text-sm">
-                    <li className="py-2 px-2 cursor-pointer pr-10">Logout</li>
-                  </ul>
-                </div>
-              )}
+          {companyData && (
+            <div className="flex items-center gap-3">
+              <p className="max-sm:hidden">Welcome, {companyData.name} </p>
+              <div className="relative group">
+                <img
+                  onClick={toggleMenu}
+                  className="w-8 h-8 border rounded-full cursor-pointer"
+                  src={companyData.image}
+                  alt="User Avatar"
+                />
+                {menuOpen && (
+                  <div className="absolute top-12 right-0 ring-0 z-10 text-black rounded pt-2">
+                    <ul className="list-none m-0 p-2 bg-white rounded-md border text-sm">
+                      <li
+                        onClick={logout}
+                        className="py-2 px-2 cursor-pointer pr-10"
+                      >
+                        Logout
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       <div className="flex items-start">
@@ -45,7 +72,9 @@ const Dashboard = () => {
           <ul className="flex flex-col items-start pt-5 text-gray-800">
             <NavLink
               className={({ isActive }) =>
-                `flex items-center p-3 sm:px-6 w-full hover:bg-gray-100 ${isActive && 'bg-blue-100 border-r-4 border-blue-500'}`
+                `flex items-center p-3 sm:px-6 w-full hover:bg-gray-100 ${
+                  isActive && "bg-blue-100 border-r-4 border-blue-500"
+                }`
               }
               to={"/dashboard/add-job"}
             >
@@ -54,7 +83,9 @@ const Dashboard = () => {
             </NavLink>
             <NavLink
               className={({ isActive }) =>
-                `flex items-center p-3 sm:px-6 w-full hover:bg-gray-100 ${isActive && 'bg-blue-100 border-r-4 border-blue-500'}`
+                `flex items-center p-3 sm:px-6 w-full hover:bg-gray-100 ${
+                  isActive && "bg-blue-100 border-r-4 border-blue-500"
+                }`
               }
               to={"/dashboard/manage-jobs"}
             >
@@ -63,7 +94,9 @@ const Dashboard = () => {
             </NavLink>
             <NavLink
               className={({ isActive }) =>
-                `flex items-center p-3 sm:px-6 w-full hover:bg-gray-100 ${isActive && 'bg-blue-100 border-r-4 border-blue-500'}`
+                `flex items-center p-3 sm:px-6 w-full hover:bg-gray-100 ${
+                  isActive && "bg-blue-100 border-r-4 border-blue-500"
+                }`
               }
               to={"/dashboard/view-applications"}
             >

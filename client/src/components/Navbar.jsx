@@ -67,7 +67,7 @@ const Navbar = () => {
       {menuOpen && !user && (
         <div className="sm:hidden bg-gray-100 p-4">
           <div className="flex flex-col items-center gap-4">
-            <button  className="text-gray-600">Recruiter Login</button>
+            <button  onClick={e=>setShowRecruiterLogin(true)}  className="text-gray-600">Recruiter Login</button>
             <button
               className="bg-blue-700 text-white px-6 py-2 rounded-full"
               onClick={() => openSignIn()}

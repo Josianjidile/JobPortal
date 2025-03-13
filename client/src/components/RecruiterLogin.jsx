@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useContext } from "react";
 import { assets } from "../assets/assets";
 import { AppContext } from "../context/AppContext";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const RecruiterLogin = () => {
   const [state, setState] = useState("Login");
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -11,23 +15,73 @@ const RecruiterLogin = () => {
   const [isTextDataSubmitted, setIsTextDataSubmitted] = useState(false);
 
   // Get function from context
-  const { setShowRecruiterLogin } = useContext(AppContext);
+  const { setShowRecruiterLogin, backendUrl, setCompanyToken, setCompanyData } =
+    useContext(AppContext);
 
   // Disable scrolling when modal is open
   useEffect(() => {
-    document.body.style.overflow = "hidden"; // Disable scrolling
+    document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = "auto";     
+      document.body.style.overflow = "auto";
     };
   }, []);
 
-  const onSubmitHandler = (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
+  
     if (state === "Sign Up" && !isTextDataSubmitted) {
       setIsTextDataSubmitted(true);
+      return;
+    }
+  
+    try {
+      if (state === "Login") {
+        const { data } = await axios.post(`${backendUrl}/api/company/login`, {
+          email,
+          password,
+        });
+  
+        if (data.success) {
+          console.log(data);
+          setCompanyData(data.company);
+          setCompanyToken(data.token);
+          localStorage.setItem("companyToken", data.token);
+          setShowRecruiterLogin(false);
+          navigate("/dashboard");
+        } else {
+          toast.error(data.message || "Login failed. Please try again.");
+        }
+      } else {
+        // Handle Sign Up
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("password", password);
+        formData.append("email", email);
+        formData.append("image", image);
+  
+        const { data } = await axios.post(
+          `${backendUrl}/api/company/register`,
+          formData
+        );
+  
+        if (data.success) {
+          console.log(data);
+          setCompanyData(data.company);
+          setCompanyToken(data.token);
+          localStorage.setItem("companyToken", data.token);
+          setShowRecruiterLogin(false);
+          navigate("/dashboard");
+        } else {
+          toast.error(data.message || "Registration failed. Please try again.");
+        }
+      }
+    } catch (error) {
+      console.error("Login/Signup error:", error);
+      toast.error(error.response?.data?.message || "Something went wrong!");
     }
   };
+  
 
   useEffect(() => {
     if (image) {
@@ -38,7 +92,10 @@ const RecruiterLogin = () => {
 
   return (
     <div className="absolute top-0 left-0 right-0 bottom-0 backdrop-blur-sm bg-black/30 flex justify-center items-center">
-      <form onSubmit={onSubmitHandler} className="relative bg-white p-10 rounded-xl text-slate-500 w-96">
+      <form
+        onSubmit={onSubmitHandler}
+        className="relative bg-white p-10 rounded-xl text-slate-500 w-96"
+      >
         <h1 className="text-center text-2xl text-neutral-700 font-medium">
           Recruiter {state}
         </h1>
@@ -60,7 +117,9 @@ const RecruiterLogin = () => {
                 accept="image/*"
               />
             </label>
-            <p>Upload Company <br /> Logo</p>
+            <p>
+              Upload Company <br /> Logo
+            </p>
           </div>
         ) : (
           <>
@@ -104,31 +163,45 @@ const RecruiterLogin = () => {
           </>
         )}
 
-        {state === "Login" && <p className="text-sm text-blue-500 my-4 cursor-pointer">Forgot password?</p>}
+        {state === "Login" && (
+          <p className="text-sm text-blue-500 my-4 cursor-pointer">
+            Forgot password?
+          </p>
+        )}
 
         <button className="bg-blue-700 w-full text-white py-2 rounded-full mt-4">
-          {state === "Login" ? "Login" : isTextDataSubmitted ? "Create Account" : "Next"}
+          {state === "Login"
+            ? "Login"
+            : isTextDataSubmitted
+            ? "Create Account"
+            : "Next"}
         </button>
 
         <p className="mt-5 text-center">
           {state === "Login" ? (
             <>
               Don't have an account?{" "}
-              <span className="text-blue-600 cursor-pointer" onClick={() => setState("Sign Up")}>
+              <span
+                className="text-blue-600 cursor-pointer"
+                onClick={() => setState("Sign Up")}
+              >
                 Sign Up
               </span>
             </>
           ) : (
             <>
               Already have an account?{" "}
-              <span className="text-blue-600 cursor-pointer" onClick={() => setState("Login")}>
+              <span
+                className="text-blue-600 cursor-pointer"
+                onClick={() => setState("Login")}
+              >
                 Login
               </span>
             </>
           )}
         </p>
 
-        {setShowRecruiterLogin && (
+        {setShowRecruiterLogin && typeof setShowRecruiterLogin === "function" && (
           <img
             onClick={() => setShowRecruiterLogin(false)}
             src={assets.cross_icon}
